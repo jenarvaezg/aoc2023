@@ -1,22 +1,22 @@
-with open("input01.txt") as f:
+with open("../inputs/day01.txt") as f:
     lines = [x.strip() for x in f.read().splitlines()]
 
 
-# total = 0
-# for line in lines:
-#     digit = 0
-#     for c in line:
-#         if c.isdigit():
-#             digit += 10 * int(c)
-#             break
-#     for c in reversed(line):
-#         if c.isdigit():
-#             digit += int(c)
-#             break
+total = 0
+for line in lines:
+    digit = 0
+    for c in line:
+        if c.isdigit():
+            digit += 10 * int(c)
+            break
+    for c in reversed(line):
+        if c.isdigit():
+            digit += int(c)
+            break
 
-#     total += digit
+    total += digit
 
-# print(total)
+print(total)
 
 
 def get_first_number(line) -> int:
