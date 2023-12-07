@@ -1,5 +1,4 @@
 from functools import reduce
-import itertools
 
 
 with open("../inputs/day06.txt") as f:
