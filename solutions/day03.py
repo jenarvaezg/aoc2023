@@ -1,70 +1,4 @@
-class Grid:
-    @classmethod
-    def from_lines(cls, lines: list[str]) -> "Grid":
-        width = len(lines[0])
-        height = len(lines)
-        cells = []
-        for line in lines:
-            for cell in line:
-                cells.append(cell)
-
-        return cls(width, height, cells)
-
-    def __init__(self, width: int, height: int, cells: str) -> None:
-        self.width = width
-        self.height = height
-        self.cells = cells
-
-    def __str__(self) -> str:
-        s = ""
-        for i, c in enumerate(self.cells):
-            s += c
-            if (i + 1) % self.width == 0:
-                s += "\n"
-
-        return s
-
-    def cell_at(self, x: int, y: int) -> str | None:
-        if x < 0 or y < 0 or x >= self.width or y >= self.height:
-            return None
-        return self.cells[y * self.height + x]
-
-    @staticmethod
-    def get_neighbors_positions(x: int, y: int) -> list[tuple[int, int]]:
-        neighbor_deltas = (
-            (-1, -1),  # TOP LEFT
-            (0, -1),  # TOP
-            (1, -1),  # TOP RIGHT
-            (-1, 0),  # LEFT
-            (1, 0),  # RIGHT
-            (-1, 1),  # BOTTOM LEFT
-            (0, 1),  # BOTTOM
-            (1, 1),  # BOTTOM RIGHT
-        )
-        positions = []
-        for xd, yd in neighbor_deltas:
-            xtarget, ytarget = x + xd, y + yd
-            positions.append((xtarget, ytarget))
-
-        return positions
-
-    def get_neighbors(self, x: int, y: int) -> list[str]:
-        neighbors = []
-        for cell in self.get_neighbors_positions(x, y):
-            if neighbor := self.cell_at(*cell):
-                neighbors.append(neighbor)
-
-        return neighbors
-
-    def is_part_number(self, x: int, y: int) -> bool:
-        if not (cell := self.cell_at(x, y)) or not cell.isnumeric():
-            return False
-
-        for neighbor in self.get_neighbors(x, y):
-            if neighbor != "." and not neighbor.isalnum():
-                return True
-
-        return False
+from common.grid import Grid, Coord
 
 
 with open("../inputs/day03.txt") as f:
@@ -76,6 +10,17 @@ with open("../inputs/day03.txt") as f:
 grid = Grid.from_lines(lines)
 
 
+def is_part_number(grid: Grid, coord: Coord) -> bool:
+    if not (cell := grid.cell_at(coord)) or not cell.isnumeric():
+        return False
+
+    for neighbor in grid.get_neighbors(coord):
+        if neighbor != "." and not neighbor.isalnum():
+            return True
+
+    return False
+
+
 part_numbers = []
 numbers = {}
 in_number = False
@@ -83,8 +28,9 @@ current_digits = []
 number_coordinates = []
 for y in range(grid.height):
     for x in range(grid.width):
-        if (cell := grid.cell_at(x, y)) and cell.isnumeric():
-            number_coordinates.append((x, y))
+        coord = Coord(x, y)
+        if (cell := grid.cell_at(coord)) and cell.isnumeric():
+            number_coordinates.append(coord)
             in_number = True
             current_digits.append(cell)
         else:
@@ -102,7 +48,7 @@ for y in range(grid.height):
 
 
 for number_coordinates, number in numbers.items():
-    if any(grid.is_part_number(*coord) for coord in number_coordinates):
+    if any(is_part_number(grid, coord) for coord in number_coordinates):
         part_numbers.append(number)
 
 print(sum(part_numbers))
@@ -111,15 +57,16 @@ print(sum(part_numbers))
 gear_coords = []
 for y in range(grid.height):
     for x in range(grid.width):
-        if (c := grid.cell_at(x, y)) == "*" and len(
-            [neighbor for neighbor in grid.get_neighbors(x, y) if neighbor.isalnum()]
+        coord = Coord(x, y)
+        if (c := grid.cell_at(coord)) == "*" and len(
+            [neighbor for neighbor in grid.get_neighbors(coord) if neighbor.isalnum()]
         ) > 1:
-            gear_coords.append((x, y))
+            gear_coords.append(coord)
 
 ratio = 0
 for gear_coord in gear_coords:
     # find numbers
-    gear_neighbors = grid.get_neighbors_positions(*gear_coord)
+    gear_neighbors = grid.get_neighbors_positions(gear_coord)
     matching_numbers = []
     for number_coords, number in numbers.items():
         if any(coord in gear_neighbors for coord in number_coords):
